@@ -1,0 +1,69 @@
+---
+format_version: '5'
+default_step_lib_source: https://github.com/bitrise-io/bitrise-steplib.git
+project_type: react-native
+
+trigger_map:
+- push_branch: "*"
+  workflow: primary
+- pull_request_source_branch: "*"
+  workflow: primary
+
+workflows:
+  deploy:
+    steps:
+    - activate-ssh-key@3.1.1:
+        run_if: '{{getenv "SSH_RSA_PRIVATE_KEY" | ne ""}}'
+    - git-clone@4.0.11: {}
+    - script@1.1.5:
+        title: Do anything with Script step
+    - npm@0.9.1:
+        inputs:
+        - command: install
+    - install-missing-android-tools@2.1.1:
+        inputs:
+        - gradlew_path: "${ANDROID_PROJECT_PATH}/gradlew"
+    - android-build@0.9.4:
+        inputs:
+        - project_location: "$ANDROID_PROJECT_PATH"
+        - module: "$ANDROID_PROJECT_MODULE"
+        - variant: Release
+    - certificate-and-profile-installer@1.9.3: {}
+    - xcode-archive@2.4.8:
+        inputs:
+        - project_path: "$IOS_PROJECT_PATH"
+        - scheme: "$IOS_PROJECT_SCHEME"
+        - export_method: "$IOS_PROJECT_EXPORT_METHOD"
+        - configuration: Release
+    - deploy-to-bitrise-io@1.3.12: {}
+  primary:
+    steps:
+    - activate-ssh-key@4.0.2:
+        run_if: '{{getenv "SSH_RSA_PRIVATE_KEY" | ne ""}}'
+    - git-clone@4.0.11: {}
+    - script@1.1.5:
+        title: Do anything with Script step
+    - npm@0.9.1:
+        inputs:
+        - command: install
+    - install-missing-android-tools@2.1.1:
+        inputs:
+        - gradlew_path: "${ANDROID_PROJECT_PATH}/gradlew"
+    - android-build@0.9.4:
+        inputs:
+        - project_location: "$ANDROID_PROJECT_PATH"
+        - module: "$ANDROID_PROJECT_MODULE"
+        - variant: Debug
+    - android-lint@0.9.4:
+        inputs:
+        - project_location: "$ANDROID_PROJECT_PATH"
+        - module: "$ANDROID_PEOJCT_MODULE"
+        - variant: "$BUILD_VARIANT"
+app:
+  envs:
+  - ANDROID_PROJECT_PATH: android
+  - ANDROID_PROJECT_MODULE: app
+  - IOS_PROJECT_PATH: ios/MDReactNativeDemo.xcodeproj
+  - IOS_PROJECT_SCHEME: MDReactNativeDemo
+  - IOS_PROJECT_EXPORT_METHOD: development
+
