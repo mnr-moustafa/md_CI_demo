@@ -2,13 +2,11 @@
 format_version: '5'
 default_step_lib_source: https://github.com/bitrise-io/bitrise-steplib.git
 project_type: react-native
-
 trigger_map:
 - push_branch: "*"
   workflow: primary
 - pull_request_source_branch: "*"
   workflow: primary
-
 workflows:
   deploy:
     steps:
@@ -27,7 +25,7 @@ workflows:
         inputs:
         - project_location: "$ANDROID_PROJECT_PATH"
         - module: "$ANDROID_PROJECT_MODULE"
-        - variant: Release
+        - variant: release
     - certificate-and-profile-installer@1.9.3: {}
     - xcode-archive@2.4.8:
         inputs:
@@ -46,19 +44,22 @@ workflows:
     - npm@0.9.1:
         inputs:
         - command: install
-    - install-missing-android-tools@2.1.1:
+    - install-missing-android-tools@2.2.0:
         inputs:
         - gradlew_path: "${ANDROID_PROJECT_PATH}/gradlew"
     - android-build@0.9.4:
         inputs:
         - project_location: "$ANDROID_PROJECT_PATH"
         - module: "$ANDROID_PROJECT_MODULE"
-        - variant: Debug
+        - variant: debug
     - android-lint@0.9.4:
         inputs:
         - project_location: "$ANDROID_PROJECT_PATH"
         - module: "$ANDROID_PEOJCT_MODULE"
-        - variant: "$BUILD_VARIANT"
+        - variant: debug
+    - npm@0.9.1:
+        inputs:
+        - command: test
 app:
   envs:
   - ANDROID_PROJECT_PATH: android
@@ -66,4 +67,3 @@ app:
   - IOS_PROJECT_PATH: ios/MDReactNativeDemo.xcodeproj
   - IOS_PROJECT_SCHEME: MDReactNativeDemo
   - IOS_PROJECT_EXPORT_METHOD: development
-
