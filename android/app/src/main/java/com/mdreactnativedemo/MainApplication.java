@@ -44,5 +44,6 @@ public class MainApplication extends Application implements ReactApplication {
     super.onCreate();
     Fabric.with(this, new Crashlytics());
     SoLoader.init(this, /* native exo package */ false);
+    //Test push changes/add pull requests to trigger workflows to run
   }
 }
