@@ -15,7 +15,21 @@ trigger_map:
   pull_request_target_branch: release
   workflow: uat
 workflows:
+  _check_react_native:
+    steps:
+    - script@1.1.5:
+        title: check if react-native is already installed
+        inputs:
+        - content: |-
+            #!/usr/bin/env bash
+            set -ex
+            if command -v react-native &>/dev/null; then
+              echo "react-native already installed"
+              envman add --key HAS_REACT_NATIVE --value "true"
+            fi
   dev:
+    before_run:
+    - _check_react_native
     envs:
     - BITRISE_GIT_BRANCH: master
     steps:
@@ -24,18 +38,17 @@ workflows:
     - git-clone@4.0.11:
         inputs:
         - Branch: "$BITRISE_GIT_BRANCH"
-    - script@1.1.5:
-        title: Do anything with Script step
-    - install-react-native@0.9.1: {}
+    - install-react-native@0.9.1:
+        run_if: not (enveq "HAS_REACT_NATIVE" "true")
     - npm@0.9.1:
         inputs:
         - command: install
     - react-native-bundle@1.0.3:
         inputs:
         - platform: android
-        - out: "$BITRISE_SOURCE_DIR/android/app/src/main/res/index.android.bundle"
+        - out: android/app/src/main/res/index.android.bundle
         - entry_file: index.js
-        - assetRoots: "$BITRISE_SOURCE_DIR/android/app/src/main/res/"
+        - assetRoots: android/app/src/main/res/
     - install-missing-android-tools@2.2.0:
         inputs:
         - gradlew_path: "$GRADLEW_PATH"
@@ -53,6 +66,8 @@ workflows:
         inputs:
         - command: test
   qa:
+    before_run:
+    - _check_react_native
     envs:
     - BITRISE_GIT_BRANCH: QA
     steps:
@@ -61,18 +76,17 @@ workflows:
     - git-clone@4.0.11:
         inputs:
         - Branch: qa
-    - script@1.1.5:
-        title: Do anything with Script step
-    - install-react-native@0.9.1: {}
+    - install-react-native@0.9.1:
+        run_if: not (enveq "HAS_REACT_NATIVE" "true")
     - npm@0.9.1:
         inputs:
         - command: install
     - react-native-bundle@1.0.3:
         inputs:
         - platform: android
-        - out: "$BITRISE_SOURCE_DIR/android/app/src/main/res/index.android.bundle"
+        - out: android/app/src/main/res/index.android.bundle
         - entry_file: index.js
-        - assetRoots: "$BITRISE_SOURCE_DIR/android/app/src/main/res/"
+        - assetRoots: android/app/src/main/res/
     - install-missing-android-tools@2.2.0:
         inputs:
         - gradlew_path: "$GRADLEW_PATH"
