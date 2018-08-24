@@ -6,30 +6,91 @@ trigger_map:
 - push_branch: master
   workflow: dev
 - pull_request_source_branch: master
+  workflow: dev
+  pull_request_target_branch: QA
+- pull_request_source_branch: QA
+  pull_request_target_branch: UAT
   workflow: qa
-  pull_request_target_branch: qa
-- pull_request_source_branch: qa
-  pull_request_target_branch: uat
+- pull_request_source_branch: uat
+  pull_request_target_branch: release
   workflow: uat
 workflows:
+  _check_react_native:
+    steps:
+    - script@1.1.5:
+        title: check if react-native is already installed
+        inputs:
+        - content: |-
+            #!/usr/bin/env bash
+            set -ex
+            if command -v react-native &>/dev/null; then
+              echo "react-native already installed"
+              envman add --key HAS_REACT_NATIVE --value "true"
+            fi
   dev:
+    before_run:
+    - _check_react_native
     envs:
     - BITRISE_GIT_BRANCH: master
     steps:
-    - activate-ssh-key@4.0.2:
+    - activate-ssh-key@4.0.3:
         run_if: '{{getenv "SSH_RSA_PRIVATE_KEY" | ne ""}}'
     - git-clone@4.0.11:
         inputs:
         - Branch: "$BITRISE_GIT_BRANCH"
-    - script@1.1.5:
-        title: Do anything with Script step
+    - install-react-native@0.9.1:
+        run_if: not (enveq "HAS_REACT_NATIVE" "true")
     - npm@0.9.1:
         inputs:
         - command: install
+    - react-native-bundle@1.0.3:
+        inputs:
+        - platform: android
+        - out: android/app/src/main/res/index.android.bundle
+        - entry_file: index.js
+        - assetRoots: android/app/src/main/res/
     - install-missing-android-tools@2.2.0:
         inputs:
         - gradlew_path: "$GRADLEW_PATH"
-    - android-build@0.9.4:
+    - android-build@0.9.5:
+        inputs:
+        - project_location: "$ANDROID_PROJECT_PATH"
+        - module: "$ANDROID_PROJECT_MODULE"
+        - variant: debug
+    - android-lint@0.9.4:
+        inputs:
+        - project_location: "$ANDROID_PROJECT_PATH"
+        - module: "$ANDROID_PEOJCT_MODULE"
+        - variant: debug
+    - npm@0.9.1:
+        inputs:
+        - command: test
+  qa:
+    before_run:
+    - _check_react_native
+    envs:
+    - BITRISE_GIT_BRANCH: QA
+    steps:
+    - activate-ssh-key@4.0.3:
+        run_if: '{{getenv "SSH_RSA_PRIVATE_KEY" | ne ""}}'
+    - git-clone@4.0.11:
+        inputs:
+        - Branch: qa
+    - install-react-native@0.9.1:
+        run_if: not (enveq "HAS_REACT_NATIVE" "true")
+    - npm@0.9.1:
+        inputs:
+        - command: install
+    - react-native-bundle@1.0.3:
+        inputs:
+        - platform: android
+        - out: android/app/src/main/res/index.android.bundle
+        - entry_file: index.js
+        - assetRoots: android/app/src/main/res/
+    - install-missing-android-tools@2.2.0:
+        inputs:
+        - gradlew_path: "$GRADLEW_PATH"
+    - android-build@0.9.5:
         inputs:
         - project_location: "$ANDROID_PROJECT_PATH"
         - module: "$ANDROID_PROJECT_MODULE"
@@ -46,36 +107,6 @@ workflows:
         is_always_run: true
         inputs:
         - gradle_task: clean assembleDebug crashlyticsUploadDistributionDebug
-  qa:
-    envs:
-    - BITRISE_GIT_BRANCH: QA
-    steps:
-    - activate-ssh-key@4.0.2:
-        run_if: '{{getenv "SSH_RSA_PRIVATE_KEY" | ne ""}}'
-    - git-clone@4.0.11:
-        inputs:
-        - Branch: qa
-    - script@1.1.5:
-        title: Do anything with Script step
-    - npm@0.9.1:
-        inputs:
-        - command: install
-    - install-missing-android-tools@2.2.0:
-        inputs:
-        - gradlew_path: "$GRADLEW_PATH"
-    - android-build@0.9.4:
-        inputs:
-        - project_location: "$ANDROID_PROJECT_PATH"
-        - module: "$ANDROID_PROJECT_MODULE"
-        - variant: debug
-    - android-lint@0.9.4:
-        inputs:
-        - project_location: "$ANDROID_PROJECT_PATH"
-        - module: "$ANDROID_PEOJCT_MODULE"
-        - variant: debug
-    - npm@0.9.1:
-        inputs:
-        - command: test
   uat:
     envs:
     - BITRISE_GIT_BRANCH: UAT
