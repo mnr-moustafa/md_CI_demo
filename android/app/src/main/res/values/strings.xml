@@ -1,3 +1,6 @@
 <resources>
+    <string moduleConfig="true" name="codepush_production_key">FeqttZi51FSZ2jl4NOMNvt1soBR4Hy-bSuL4vX</string>
+    <string moduleConfig="true" name="codepush_staging_key">Sz1PzzDsCI-R9swke_7zsKwbMMfZBk-S_I4v7</string>
+
     <string name="app_name">MDReactNativeDemo</string>
 </resources>
