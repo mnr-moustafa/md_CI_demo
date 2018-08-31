@@ -51,7 +51,7 @@ export default class App extends Component<Props> {
   render() {
     return (
       <View style={styles.container}>
-        <Text style={styles.welcome}>Hello code push 3!</Text>
+        <Text style={styles.welcome}>Hello code push 3.........!</Text>
 
         <Text style={styles.welcome}>Welcome to React Native MD CI Demo </Text>
         <Text>   This is a demo for CI/CD setup that includes different branches in Github. </Text>
