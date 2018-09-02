@@ -51,7 +51,7 @@ export default class App extends Component<Props> {
   render() {
     return (
       <View style={styles.container}>
-        <Text style={styles.welcome}>Hello code push 3.........!</Text>
+        <Text style={styles.welcome}>Hello code push useing partial_updates message in PR!</Text>
 
         <Text style={styles.welcome}>Hello code push 3.........!</Text>
         <Text style={styles.welcome}>Hello code push 3.........!</Text>
